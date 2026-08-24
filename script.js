@@ -50,34 +50,110 @@ const startIndex = (i - 1) * activitiesPerDay;
 const endIndex = startIndex + activitiesPerDay;
 
 const dayActivities = cityActivities.slice(startIndex, endIndex);
+const morningActivities = dayActivities.filter(activity => {
+    const hour = parseInt(activity.time.split(":")[0]);
+    return hour < 12;
+});
+
+const afternoonActivities = dayActivities.filter(activity => {
+    const hour = parseInt(activity.time.split(":")[0]);
+    return hour >= 12 && hour < 18;
+});
+
+const eveningActivities = dayActivities.filter(activity => {
+    const hour = parseInt(activity.time.split(":")[0]);
+    return hour >= 18;
+});
         daysHtml += `
     <div class="day-card">
         <h3>Giorno ${i}</h3>
 
         <div class="activities" id="activities-${i}">
-            ${
-                dayActivities.length > 0
-                    ? dayActivities
-    .map(activity => `
-    <div class="activity-item">
-        <span class="activity-text">
-            ⏰ ${activity.time} — 📍 ${activity.name}
-        </span>
 
-            <div class="activity-actions">
-                <button class="edit-activity" onclick="editActivity(this)">
-                    ✏️ Modifica
-                </button>
+        ${
+    morningActivities.length > 0
+        ? `
+            <div class="period-section" data-period="morning">
+                <h4>☀️ Mattina</h4>
 
-                <button class="delete-activity" onclick="deleteActivity(this)">
-                    🗑️ Elimina
-                </button>
+                ${morningActivities.map(activity => `
+                    <div class="activity-item">
+                        <span class="activity-text">
+                            ⏰ ${activity.time} — 📍 ${activity.name}
+                        </span>
+
+                        <div class="activity-actions">
+                            <button class="edit-activity" onclick="editActivity(this)">
+                                ✏️ Modifica
+                            </button>
+
+                            <button class="delete-activity" onclick="deleteActivity(this)">
+                                🗑️ Elimina
+                            </button>
+                        </div>
+                    </div>
+                `).join("")}
             </div>
-        </div>
-    `)
-    .join("")
-                    : '<p class="empty-message">Nessuna attività inserita</p>'
-            }
+        `
+        : ""
+}
+
+    ${
+        afternoonActivities.length > 0
+            ? `
+            <div class="period-section" data-period="afternoon">
+                <h4>🌤️ Pomeriggio</h4>
+                ${afternoonActivities.map(activity => `
+                    <div class="activity-item">
+                        <span class="activity-text">
+                            ⏰ ${activity.time} — 📍 ${activity.name}
+                        </span>
+
+                        <div class="activity-actions">
+                            <button class="edit-activity" onclick="editActivity(this)">
+                                ✏️ Modifica
+                            </button>
+
+                            <button class="delete-activity" onclick="deleteActivity(this)">
+                                🗑️ Elimina
+                            </button>
+                        </div>
+                    </div>
+                `).join("")}
+                </div>
+            `
+            : ""
+    }
+
+    ${
+        eveningActivities.length > 0
+            ? `
+            <div class="period-section" data-period="evening">
+                <h4>🌙 Sera</h4>
+                ${eveningActivities.map(activity => `
+                    <div class="activity-item">
+                        <span class="activity-text">
+                            ⏰ ${activity.time} — 📍 ${activity.name}
+                        </span>
+
+                        <div class="activity-actions">
+                            <button class="edit-activity" onclick="editActivity(this)">
+                                ✏️ Modifica
+                            </button>
+
+                            <button class="delete-activity" onclick="deleteActivity(this)">
+                                🗑️ Elimina
+                            </button>
+                        </div>
+                    </div>
+                `).join("")}
+                </div>
+            `
+            : ""
+    }
+
+</div>
+            
         </div>
 
         <button class="add-activity" onclick="addActivity(${i})">
@@ -110,6 +186,17 @@ function addActivity(day) {
     }
 
     const activitiesContainer = document.getElementById(`activities-${day}`);
+    const hour = parseInt(time.split(":")[0]);
+
+let period = "";
+
+if (hour < 12) {
+    period = "morning";
+} else if (hour < 18) {
+    period = "afternoon";
+} else {
+    period = "evening";
+}
 
     const emptyMessage = activitiesContainer.querySelector(".empty-message");
 
@@ -136,7 +223,59 @@ function addActivity(day) {
         </div>
     `;
 
-    activitiesContainer.appendChild(activityItem);
+    let periodSection = activitiesContainer.querySelector(
+    `.period-section[data-period="${period}"]`
+);
+
+if (!periodSection) {
+    periodSection = document.createElement("div");
+    periodSection.classList.add("period-section");
+    periodSection.dataset.period = period;
+
+    let title = "";
+
+    if (period === "morning") {
+        title = "☀️ Mattina";
+    } else if (period === "afternoon") {
+        title = "🌤️ Pomeriggio";
+    } else {
+        title = "🌙 Sera";
+    }
+
+    periodSection.innerHTML = `<h4>${title}</h4>`;
+    activitiesContainer.appendChild(periodSection);
+}
+
+periodSection.appendChild(activityItem);
+const activityItems = Array.from(
+    periodSection.querySelectorAll(".activity-item")
+);
+
+activityItems.sort((a, b) => {
+    const timeA = a.querySelector(".activity-text")
+        .textContent
+        .match(/(\d{1,2}):(\d{2})/);
+
+    const timeB = b.querySelector(".activity-text")
+        .textContent
+        .match(/(\d{1,2}):(\d{2})/);
+
+    if (!timeA || !timeB) {
+        return 0;
+    }
+
+    const minutesA =
+        parseInt(timeA[1]) * 60 + parseInt(timeA[2]);
+
+    const minutesB =
+        parseInt(timeB[1]) * 60 + parseInt(timeB[2]);
+
+    return minutesA - minutesB;
+});
+
+activityItems.forEach(item => {
+    periodSection.appendChild(item);
+});
 }
 
 
@@ -170,6 +309,84 @@ function editActivity(button) {
 
     activityText.textContent =
         `⏰ ${newTime} — 📍 ${newActivity}`;
+
+    const hour = parseInt(newTime.split(":")[0]);
+
+    let newPeriod = "";
+
+    if (hour < 12) {
+        newPeriod = "morning";
+    } else if (hour < 18) {
+        newPeriod = "afternoon";
+    } else {
+        newPeriod = "evening";
+    }
+
+    const activitiesContainer =
+        activityItem.closest(".activities");
+
+    let periodSection = activitiesContainer.querySelector(
+        `.period-section[data-period="${newPeriod}"]`
+    );
+
+    if (!periodSection) {
+        periodSection = document.createElement("div");
+        periodSection.classList.add("period-section");
+        periodSection.dataset.period = newPeriod;
+
+        let title = "";
+
+        if (newPeriod === "morning") {
+            title = "☀️ Mattina";
+        } else if (newPeriod === "afternoon") {
+            title = "🌤️ Pomeriggio";
+        } else {
+            title = "🌙 Sera";
+        }
+
+        periodSection.innerHTML = `<h4>${title}</h4>`;
+        activitiesContainer.appendChild(periodSection);
+    }
+
+    const oldPeriodSection = activityItem.closest(".period-section");
+    periodSection.appendChild(activityItem);
+    if (
+    oldPeriodSection &&
+    oldPeriodSection !== periodSection &&
+    oldPeriodSection.querySelectorAll(".activity-item").length === 0
+) {
+    oldPeriodSection.remove();
+}
+
+    const activityItems = Array.from(
+        periodSection.querySelectorAll(".activity-item")
+    );
+
+    activityItems.sort((a, b) => {
+        const timeA = a.querySelector(".activity-text")
+            .textContent
+            .match(/(\d{1,2}):(\d{2})/);
+
+        const timeB = b.querySelector(".activity-text")
+            .textContent
+            .match(/(\d{1,2}):(\d{2})/);
+
+        if (!timeA || !timeB) {
+            return 0;
+        }
+
+        const minutesA =
+            parseInt(timeA[1]) * 60 + parseInt(timeA[2]);
+
+        const minutesB =
+            parseInt(timeB[1]) * 60 + parseInt(timeB[2]);
+
+        return minutesA - minutesB;
+    });
+
+    activityItems.forEach(item => {
+        periodSection.appendChild(item);
+    });
 }
 
 
@@ -178,6 +395,14 @@ function deleteActivity(button) {
     const activitiesContainer = activityItem.parentElement;
 
     activityItem.remove();
+    const periodSection = activitiesContainer.closest(".period-section");
+
+if (
+    periodSection &&
+    periodSection.querySelectorAll(".activity-item").length === 0
+) {
+    periodSection.remove();
+}
 
     if (activitiesContainer.children.length === 0) {
         activitiesContainer.innerHTML =
