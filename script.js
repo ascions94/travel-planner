@@ -1,17 +1,20 @@
 const destinations = {
     londra: [
-        "Big Ben e Westminster",
-        "London Eye",
-        "Buckingham Palace",
-        "British Museum",
-        "Covent Garden",
-        "Soho",
-        "Tower of London",
-        "Tower Bridge",
-        "Borough Market",
-        "Notting Hill",
-        "Hyde Park",
-        "Camden Town"
+        { time: "09:00", name: "Big Ben e Westminster" },
+        { time: "11:00", name: "London Eye" },
+        { time: "14:30", name: "Buckingham Palace" },
+
+        { time: "09:30", name: "British Museum" },
+        { time: "13:00", name: "Covent Garden" },
+        { time: "18:00", name: "Soho" },
+
+        { time: "09:00", name: "Tower of London" },
+        { time: "11:30", name: "Tower Bridge" },
+        { time: "13:30", name: "Borough Market" },
+
+        { time: "09:30", name: "Notting Hill" },
+        { time: "12:00", name: "Hyde Park" },
+        { time: "17:00", name: "Camden Town" }
     ]
 };
 const button = document.getElementById("create-trip");
@@ -56,8 +59,10 @@ const dayActivities = cityActivities.slice(startIndex, endIndex);
                 dayActivities.length > 0
                     ? dayActivities
     .map(activity => `
-        <div class="activity-item">
-            <span class="activity-text">📍 ${activity}</span>
+    <div class="activity-item">
+        <span class="activity-text">
+            ⏰ ${activity.time} — 📍 ${activity.name}
+        </span>
 
             <div class="activity-actions">
                 <button class="edit-activity" onclick="editActivity(this)">
@@ -92,32 +97,12 @@ result.innerHTML = `
 `;
 });
 function addActivity(day) {
-    function editActivity(button) {
-    const activityItem = button.closest(".activity-item");
-    const activityText = activityItem.querySelector(".activity-text");
-
-    const currentText = activityText.textContent.replace("📍 ", "");
-
-    const newText = prompt("Modifica attività:", currentText);
-
-    if (newText === null || newText.trim() === "") {
+    const time = prompt("A che ora?");
+    
+    if (time === null || time.trim() === "") {
         return;
     }
 
-    activityText.textContent = "📍 " + newText;
-}
-
-function deleteActivity(button) {
-    const activityItem = button.closest(".activity-item");
-    const activitiesContainer = activityItem.parentElement;
-
-    activityItem.remove();
-
-    if (activitiesContainer.children.length === 0) {
-        activitiesContainer.innerHTML =
-            '<p class="empty-message">Nessuna attività inserita</p>';
-    }
-}
     const activity = prompt("Quale attività vuoi aggiungere?");
 
     if (activity === null || activity.trim() === "") {
@@ -136,36 +121,66 @@ function deleteActivity(button) {
     activityItem.classList.add("activity-item");
 
     activityItem.innerHTML = `
-        <span class="activity-text">📍 ${activity}</span>
+        <span class="activity-text">
+            ⏰ ${time} — 📍 ${activity}
+        </span>
 
         <div class="activity-actions">
-            <button class="edit-activity">✏️ Modifica</button>
-            <button class="delete-activity">🗑️ Elimina</button>
+            <button class="edit-activity" onclick="editActivity(this)">
+                ✏️ Modifica
+            </button>
+
+            <button class="delete-activity" onclick="deleteActivity(this)">
+                🗑️ Elimina
+            </button>
         </div>
     `;
 
-    const editButton = activityItem.querySelector(".edit-activity");
-    const deleteButton = activityItem.querySelector(".delete-activity");
-
-    editButton.addEventListener("click", function () {
-        const newActivity = prompt("Modifica attività:", activity);
-
-        if (newActivity === null || newActivity.trim() === "") {
-            return;
-        }
-
-        activityItem.querySelector(".activity-text").textContent =
-            "📍 " + newActivity;
-    });
-
-    deleteButton.addEventListener("click", function () {
-        activityItem.remove();
-
-        if (activitiesContainer.children.length === 0) {
-            activitiesContainer.innerHTML =
-                '<p class="empty-message">Nessuna attività inserita</p>';
-        }
-    });
-
     activitiesContainer.appendChild(activityItem);
+}
+
+
+function editActivity(button) {
+    const activityItem = button.closest(".activity-item");
+    const activityText = activityItem.querySelector(".activity-text");
+
+    const fullText = activityText.textContent.trim();
+
+    const cleanedText = fullText
+        .replace("⏰", "")
+        .replace("📍", "")
+        .trim();
+
+    const parts = cleanedText.split("—");
+
+    const currentTime = parts[0].trim();
+    const currentActivity = parts.slice(1).join("—").trim();
+
+    const newTime = prompt("Modifica orario:", currentTime);
+
+    if (newTime === null || newTime.trim() === "") {
+        return;
+    }
+
+    const newActivity = prompt("Modifica attività:", currentActivity);
+
+    if (newActivity === null || newActivity.trim() === "") {
+        return;
+    }
+
+    activityText.textContent =
+        `⏰ ${newTime} — 📍 ${newActivity}`;
+}
+
+
+function deleteActivity(button) {
+    const activityItem = button.closest(".activity-item");
+    const activitiesContainer = activityItem.parentElement;
+
+    activityItem.remove();
+
+    if (activitiesContainer.children.length === 0) {
+        activitiesContainer.innerHTML =
+            '<p class="empty-message">Nessuna attività inserita</p>';
+    }
 }
