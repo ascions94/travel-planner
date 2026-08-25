@@ -144,3 +144,83 @@ body {
 .delete-activity {
     background: #fee2e2;
 }
+.hidden {
+    display: none;
+}
+.activity-form {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.activity-form h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    color: #1f2d3d;
+}
+
+.activity-form label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.activity-form input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #d7e0ea;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.activity-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+#save-activity {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #1293cf;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#cancel-activity {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    background: #eeeeee;
+    color: #333;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#save-activity:hover {
+    opacity: 0.9;
+}
+
+#cancel-activity:hover {
+    background: #dddddd;
+}
+.activity-error {
+    margin-top: 12px;
+    margin-bottom: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #ffeaea;
+    color: #b42318;
+    font-weight: 600;
+}
+
+.hidden {
+    display: none;
+}

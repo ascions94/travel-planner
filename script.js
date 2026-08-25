@@ -172,120 +172,48 @@ result.innerHTML = `
     </div>
 `;
 });
+
+
+let selectedDay = null;
+let editingItem = null;
+let formMode = "add";
+
 function addActivity(day) {
-    const time = prompt("A che ora?");
-    
-    if (time === null || time.trim() === "") {
-        return;
-    }
+    formMode = "add";
+editingItem = null;
+document.getElementById("activity-form-title").textContent =
+    "➕ Aggiungi attività";
+    selectedDay = day;
 
-    const activity = prompt("Quale attività vuoi aggiungere?");
+    const form = document.getElementById("activity-form");
+    const errorMessage = document.getElementById("activity-error");
 
-    if (activity === null || activity.trim() === "") {
-        return;
-    }
+errorMessage.textContent = "";
+errorMessage.classList.add("hidden");
+    const timeInput = document.getElementById("activity-time");
+    const nameInput = document.getElementById("activity-name");
 
-    const activitiesContainer = document.getElementById(`activities-${day}`);
-    const hour = parseInt(time.split(":")[0]);
+    const activitiesContainer =
+        document.getElementById(`activities-${day}`);
 
-let period = "";
+    timeInput.value = "";
+    nameInput.value = "";
 
-if (hour < 12) {
-    period = "morning";
-} else if (hour < 18) {
-    period = "afternoon";
-} else {
-    period = "evening";
+    activitiesContainer.insertAdjacentElement("afterend", form);
+
+    form.classList.remove("hidden");
 }
-
-    const emptyMessage = activitiesContainer.querySelector(".empty-message");
-
-    if (emptyMessage) {
-        emptyMessage.remove();
-    }
-
-    const activityItem = document.createElement("div");
-    activityItem.classList.add("activity-item");
-
-    activityItem.innerHTML = `
-        <span class="activity-text">
-            ⏰ ${time} — 📍 ${activity}
-        </span>
-
-        <div class="activity-actions">
-            <button class="edit-activity" onclick="editActivity(this)">
-                ✏️ Modifica
-            </button>
-
-            <button class="delete-activity" onclick="deleteActivity(this)">
-                🗑️ Elimina
-            </button>
-        </div>
-    `;
-
-    let periodSection = activitiesContainer.querySelector(
-    `.period-section[data-period="${period}"]`
-);
-
-if (!periodSection) {
-    periodSection = document.createElement("div");
-    periodSection.classList.add("period-section");
-    periodSection.dataset.period = period;
-
-    let title = "";
-
-    if (period === "morning") {
-        title = "☀️ Mattina";
-    } else if (period === "afternoon") {
-        title = "🌤️ Pomeriggio";
-    } else {
-        title = "🌙 Sera";
-    }
-
-    periodSection.innerHTML = `<h4>${title}</h4>`;
-    activitiesContainer.appendChild(periodSection);
-}
-
-periodSection.appendChild(activityItem);
-const activityItems = Array.from(
-    periodSection.querySelectorAll(".activity-item")
-);
-
-activityItems.sort((a, b) => {
-    const timeA = a.querySelector(".activity-text")
-        .textContent
-        .match(/(\d{1,2}):(\d{2})/);
-
-    const timeB = b.querySelector(".activity-text")
-        .textContent
-        .match(/(\d{1,2}):(\d{2})/);
-
-    if (!timeA || !timeB) {
-        return 0;
-    }
-
-    const minutesA =
-        parseInt(timeA[1]) * 60 + parseInt(timeA[2]);
-
-    const minutesB =
-        parseInt(timeB[1]) * 60 + parseInt(timeB[2]);
-
-    return minutesA - minutesB;
-});
-
-activityItems.forEach(item => {
-    periodSection.appendChild(item);
-});
-}
-
-
 function editActivity(button) {
-    const activityItem = button.closest(".activity-item");
-    const activityText = activityItem.querySelector(".activity-text");
+    formMode = "edit";
+    document.getElementById("activity-form-title").textContent =
+    "✏️ Modifica attività";
 
-    const fullText = activityText.textContent.trim();
+    editingItem = button.closest(".activity-item");
 
-    const cleanedText = fullText
+    const activityText =
+        editingItem.querySelector(".activity-text").textContent.trim();
+
+    const cleanedText = activityText
         .replace("⏰", "")
         .replace("📍", "")
         .trim();
@@ -295,100 +223,20 @@ function editActivity(button) {
     const currentTime = parts[0].trim();
     const currentActivity = parts.slice(1).join("—").trim();
 
-    const newTime = prompt("Modifica orario:", currentTime);
+    const form = document.getElementById("activity-form");
+    const timeInput = document.getElementById("activity-time");
+    const nameInput = document.getElementById("activity-name");
 
-    if (newTime === null || newTime.trim() === "") {
-        return;
-    }
-
-    const newActivity = prompt("Modifica attività:", currentActivity);
-
-    if (newActivity === null || newActivity.trim() === "") {
-        return;
-    }
-
-    activityText.textContent =
-        `⏰ ${newTime} — 📍 ${newActivity}`;
-
-    const hour = parseInt(newTime.split(":")[0]);
-
-    let newPeriod = "";
-
-    if (hour < 12) {
-        newPeriod = "morning";
-    } else if (hour < 18) {
-        newPeriod = "afternoon";
-    } else {
-        newPeriod = "evening";
-    }
+    timeInput.value = currentTime;
+    nameInput.value = currentActivity;
 
     const activitiesContainer =
-        activityItem.closest(".activities");
+        editingItem.closest(".activities");
 
-    let periodSection = activitiesContainer.querySelector(
-        `.period-section[data-period="${newPeriod}"]`
-    );
+    activitiesContainer.insertAdjacentElement("afterend", form);
 
-    if (!periodSection) {
-        periodSection = document.createElement("div");
-        periodSection.classList.add("period-section");
-        periodSection.dataset.period = newPeriod;
-
-        let title = "";
-
-        if (newPeriod === "morning") {
-            title = "☀️ Mattina";
-        } else if (newPeriod === "afternoon") {
-            title = "🌤️ Pomeriggio";
-        } else {
-            title = "🌙 Sera";
-        }
-
-        periodSection.innerHTML = `<h4>${title}</h4>`;
-        activitiesContainer.appendChild(periodSection);
-    }
-
-    const oldPeriodSection = activityItem.closest(".period-section");
-    periodSection.appendChild(activityItem);
-    if (
-    oldPeriodSection &&
-    oldPeriodSection !== periodSection &&
-    oldPeriodSection.querySelectorAll(".activity-item").length === 0
-) {
-    oldPeriodSection.remove();
+    form.classList.remove("hidden");
 }
-
-    const activityItems = Array.from(
-        periodSection.querySelectorAll(".activity-item")
-    );
-
-    activityItems.sort((a, b) => {
-        const timeA = a.querySelector(".activity-text")
-            .textContent
-            .match(/(\d{1,2}):(\d{2})/);
-
-        const timeB = b.querySelector(".activity-text")
-            .textContent
-            .match(/(\d{1,2}):(\d{2})/);
-
-        if (!timeA || !timeB) {
-            return 0;
-        }
-
-        const minutesA =
-            parseInt(timeA[1]) * 60 + parseInt(timeA[2]);
-
-        const minutesB =
-            parseInt(timeB[1]) * 60 + parseInt(timeB[2]);
-
-        return minutesA - minutesB;
-    });
-
-    activityItems.forEach(item => {
-        periodSection.appendChild(item);
-    });
-}
-
 
 function deleteActivity(button) {
     const activityItem = button.closest(".activity-item");
@@ -409,3 +257,205 @@ if (
             '<p class="empty-message">Nessuna attività inserita</p>';
     }
 }
+document.getElementById("cancel-activity").addEventListener("click", function () {
+    const form = document.getElementById("activity-form");
+    const timeInput = document.getElementById("activity-time");
+    const nameInput = document.getElementById("activity-name");
+
+    form.classList.add("hidden");
+
+    timeInput.value = "";
+    nameInput.value = "";
+
+    formMode = "add";
+    editingItem = null;
+
+    document.getElementById("activity-form-title").textContent =
+        "➕ Aggiungi attività";
+        const errorMessage = document.getElementById("activity-error");
+
+errorMessage.textContent = "";
+errorMessage.classList.add("hidden");
+});
+document.getElementById("save-activity").addEventListener("click", function () {
+
+    const time = document.getElementById("activity-time").value;
+    const activity = document.getElementById("activity-name").value;
+    const form = document.getElementById("activity-form");
+
+    if (time === "" || activity.trim() === "") {
+        alert("Inserisci sia l'orario che l'attività.");
+        return;
+    }
+
+    let activitiesContainer;
+
+    // MODIFICA DI UN'ATTIVITÀ ESISTENTE
+    if (formMode === "edit" && editingItem) {
+        activitiesContainer = editingItem.closest(".activities");
+    } else {
+        // AGGIUNTA DI UNA NUOVA ATTIVITÀ
+        activitiesContainer =
+            document.getElementById(`activities-${selectedDay}`);
+    }
+
+    if (!activitiesContainer) {
+        alert("Errore: giorno non trovato.");
+        return;
+    }
+    const existingItems = Array.from(
+    activitiesContainer.querySelectorAll(".activity-item")
+);
+
+const duplicateTime = existingItems.some(item => {
+    // Se sto modificando, ignoro l'attività stessa
+    if (formMode === "edit" && item === editingItem) {
+        return false;
+    }
+
+    const text = item.querySelector(".activity-text").textContent;
+
+    const match = text.match(/(\d{1,2}):(\d{2})/);
+
+    if (!match) {
+        return false;
+    }
+
+    const existingTime =
+        `${match[1].padStart(2, "0")}:${match[2]}`;
+
+    return existingTime === time;
+});
+
+if (duplicateTime) {
+    const errorMessage = document.getElementById("activity-error");
+
+    errorMessage.textContent =
+        "⚠️ Esiste già un'attività a questo orario.";
+
+    errorMessage.classList.remove("hidden");
+
+    return;
+}
+
+    const hour = parseInt(time.split(":")[0]);
+
+    let period = "";
+
+    if (hour < 12) {
+        period = "morning";
+    } else if (hour < 18) {
+        period = "afternoon";
+    } else {
+        period = "evening";
+    }
+
+    let periodSection = activitiesContainer.querySelector(
+        `.period-section[data-period="${period}"]`
+    );
+
+    if (!periodSection) {
+        periodSection = document.createElement("div");
+        periodSection.classList.add("period-section");
+        periodSection.dataset.period = period;
+
+        let title = "";
+
+        if (period === "morning") {
+            title = "☀️ Mattina";
+        } else if (period === "afternoon") {
+            title = "🌤️ Pomeriggio";
+        } else {
+            title = "🌙 Sera";
+        }
+
+        periodSection.innerHTML = `<h4>${title}</h4>`;
+        activitiesContainer.appendChild(periodSection);
+    }
+
+    let activityItem;
+
+    // SE STIAMO MODIFICANDO
+    if (formMode === "edit" && editingItem) {
+
+        const oldPeriodSection =
+            editingItem.closest(".period-section");
+
+        editingItem.querySelector(".activity-text").textContent =
+            `⏰ ${time} — 📍 ${activity}`;
+
+        periodSection.appendChild(editingItem);
+
+        if (
+            oldPeriodSection &&
+            oldPeriodSection !== periodSection &&
+            oldPeriodSection.querySelectorAll(".activity-item").length === 0
+        ) {
+            oldPeriodSection.remove();
+        }
+
+        activityItem = editingItem;
+
+    } else {
+
+        // SE STIAMO AGGIUNGENDO
+        activityItem = document.createElement("div");
+        activityItem.classList.add("activity-item");
+
+        activityItem.innerHTML = `
+            <span class="activity-text">
+                ⏰ ${time} — 📍 ${activity}
+            </span>
+
+            <div class="activity-actions">
+                <button class="edit-activity" onclick="editActivity(this)">
+                    ✏️ Modifica
+                </button>
+
+                <button class="delete-activity" onclick="deleteActivity(this)">
+                    🗑️ Elimina
+                </button>
+            </div>
+        `;
+
+        periodSection.appendChild(activityItem);
+    }
+
+    // ORDINA LE ATTIVITÀ PER ORARIO
+    const activityItems = Array.from(
+        periodSection.querySelectorAll(".activity-item")
+    );
+
+    activityItems.sort((a, b) => {
+
+        const timeA = a.querySelector(".activity-text")
+            .textContent.match(/(\d{1,2}):(\d{2})/);
+
+        const timeB = b.querySelector(".activity-text")
+            .textContent.match(/(\d{1,2}):(\d{2})/);
+
+        const minutesA =
+            parseInt(timeA[1]) * 60 + parseInt(timeA[2]);
+
+        const minutesB =
+            parseInt(timeB[1]) * 60 + parseInt(timeB[2]);
+
+        return minutesA - minutesB;
+    });
+
+    activityItems.forEach(item => {
+        periodSection.appendChild(item);
+    });
+
+    // CHIUDE E RESETTA IL MODULO
+    form.classList.add("hidden");
+
+    document.getElementById("activity-time").value = "";
+    document.getElementById("activity-name").value = "";
+
+    formMode = "add";
+    editingItem = null;
+
+    document.getElementById("activity-form-title").textContent =
+        "➕ Aggiungi attività";
+});

@@ -31,6 +31,29 @@
             <button id="create-trip">Crea itinerario</button>
         </div>
         <div id="trip-result" class="trip-result"></div>
+
+        <div id="activity-form" class="activity-form hidden">
+
+    <h3 id="activity-form-title">➕ Aggiungi attività</h3>
+
+    <label for="activity-time">Orario</label>
+    <input type="time" id="activity-time">
+
+    <label for="activity-name">Attività</label>
+    <input
+        type="text"
+        id="activity-name"
+        placeholder="Es. Cena a Soho"
+    >
+
+<p id="activity-error" class="activity-error hidden"></p>
+
+    <div class="activity-form-actions">
+        <button id="save-activity">Salva attività</button>
+        <button id="cancel-activity">Annulla</button>
+    </div>
+
+</div>
     </div>
 </main>
 <script src="script.js"></script>
