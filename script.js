@@ -42,6 +42,19 @@ button.addEventListener("click", function () {
     let daysHtml = "";
 
     for (let i = 1; i <= days; i++) {
+        const currentDate = new Date(startDate + "T00:00:00");
+
+currentDate.setDate(
+    currentDate.getDate() + (i - 1)
+);
+
+const formattedDate = currentDate.toLocaleDateString("it-IT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+});
+const capitalizedDate =
+    formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
         const cityKey = destination.toLowerCase();
 const cityActivities = destinations[cityKey] || [];
 
@@ -66,7 +79,9 @@ const eveningActivities = dayActivities.filter(activity => {
 });
         daysHtml += `
     <div class="day-card">
-        <h3>Giorno ${i}</h3>
+        <h3>
+    Giorno ${i} — ${capitalizedDate}
+</h3>
 
         <div class="activities" id="activities-${i}">
 
@@ -256,6 +271,7 @@ if (
         activitiesContainer.innerHTML =
             '<p class="empty-message">Nessuna attività inserita</p>';
     }
+    saveTrip();
 }
 document.getElementById("cancel-activity").addEventListener("click", function () {
     const form = document.getElementById("activity-form");
@@ -445,6 +461,7 @@ if (duplicateTime) {
 
     activityItems.forEach(item => {
         periodSection.appendChild(item);
+        saveTrip();
     });
 
     // CHIUDE E RESETTA IL MODULO
@@ -458,4 +475,64 @@ if (duplicateTime) {
 
     document.getElementById("activity-form-title").textContent =
         "➕ Aggiungi attività";
+});
+function saveTrip() {
+    const result = document.getElementById("trip-result");
+
+    const tripData = {
+        destination: document.getElementById("destination").value,
+        startDate: document.getElementById("start-date").value,
+        days: document.getElementById("days").value,
+        resultHtml: result.innerHTML
+    };
+
+    localStorage.setItem("savedTrip", JSON.stringify(tripData));
+}
+function loadTrip() {
+    const savedTrip = localStorage.getItem("savedTrip");
+
+    if (savedTrip) {
+        const tripData = JSON.parse(savedTrip);
+
+        document.getElementById("destination").value =
+            tripData.destination || "";
+
+        document.getElementById("start-date").value =
+            tripData.startDate || "";
+
+        document.getElementById("days").value =
+            tripData.days || "";
+
+        document.getElementById("trip-result").innerHTML =
+            tripData.resultHtml || "";
+    }
+}
+
+loadTrip();
+document.getElementById("new-trip").addEventListener("click", function () {
+    const confirmed = confirm(
+    "Vuoi davvero cancellare il viaggio e crearne uno nuovo?"
+);
+
+if (!confirmed) {
+    return;
+}
+
+    localStorage.removeItem("savedTrip");
+
+    document.getElementById("destination").value = "";
+    document.getElementById("start-date").value = "";
+    document.getElementById("days").value = "";
+
+    document.getElementById("trip-result").innerHTML = "";
+
+    const form = document.getElementById("activity-form");
+    form.classList.add("hidden");
+
+    document.getElementById("activity-time").value = "";
+    document.getElementById("activity-name").value = "";
+
+    formMode = "add";
+    editingItem = null;
+    selectedDay = null;
 });
