@@ -49,21 +49,93 @@ parigi: {
     country: "Francia",
 
     activities: [
-        { time: "09:00", name: "Torre Eiffel" },
-        { time: "11:30", name: "Trocadéro" },
-        { time: "15:00", name: "Arco di Trionfo" },
+    {
+        time: "09:00",
+        name: "Torre Eiffel",
+        area: "Torre Eiffel",
+        zone: "Parigi Ovest",
+        priority: 3
+    },
+    {
+        time: "11:30",
+        name: "Trocadéro",
+        area: "Torre Eiffel",
+        zone: "Parigi Ovest",
+        priority: 2
+    },
+    {
+        time: "15:00",
+        name: "Arco di Trionfo",
+        area: "Champs-Élysées",
+        zone: "Parigi Ovest",
+        priority: 3
+    },
 
-        { time: "09:00", name: "Museo del Louvre" },
-        { time: "13:00", name: "Jardin des Tuileries" },
-        { time: "18:00", name: "Montmartre e Sacré-Cœur" },
+    {
+        time: "09:00",
+        name: "Museo del Louvre",
+        area: "Louvre",
+        zone: "Parigi Centro",
+        priority: 3
+    },
+    {
+        time: "13:00",
+        name: "Jardin des Tuileries",
+        area: "Louvre",
+        zone: "Parigi Centro",
+        priority: 2
+    },
+    {
+        time: "09:30",
+        name: "Musée d'Orsay",
+        area: "Saint-Germain",
+        zone: "Parigi Centro",
+        priority: 2
+    },
 
-        { time: "09:30", name: "Île de la Cité" },
-        { time: "11:00", name: "Notre-Dame" },
-        { time: "15:30", name: "Quartiere Latino" },
+    {
+        time: "09:30",
+        name: "Île de la Cité",
+        area: "Île de la Cité",
+        zone: "Parigi Storica",
+        priority: 2
+    },
+    {
+        time: "11:00",
+        name: "Notre-Dame",
+        area: "Île de la Cité",
+        zone: "Parigi Storica",
+        priority: 3
+    },
+    {
+        time: "15:30",
+        name: "Quartiere Latino",
+        area: "Quartiere Latino",
+        zone: "Parigi Storica",
+        priority: 2
+    },
 
-        { time: "09:30", name: "Musée d'Orsay" },
-        { time: "14:00", name: "Le Marais" },
-        { time: "19:00", name: "Crociera sulla Senna" }
-    ]
+    {
+        time: "14:00",
+        name: "Le Marais",
+        area: "Le Marais",
+        zone: "Parigi Est",
+        priority: 2
+    },
+    {
+        time: "18:00",
+        name: "Montmartre e Sacré-Cœur",
+        area: "Montmartre",
+        zone: "Parigi Nord",
+        priority: 3
+    },
+    {
+        time: "19:00",
+        name: "Crociera sulla Senna",
+        area: "Senna",
+        zone: "Parigi Centro",
+        priority: 1
+    }
+]
 }
 };

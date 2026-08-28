@@ -52,11 +52,108 @@ const formattedDate = currentDate.toLocaleDateString("it-IT", {
 const capitalizedDate =
     formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 const cityActivities = cityData?.activities || [];
-const activitiesPerDay = Math.ceil(cityActivities.length / days);
-const startIndex = (i - 1) * activitiesPerDay;
-const endIndex = startIndex + activitiesPerDay;
+const maxActivities = days * 3;
+const maxActivitiesPerDay = 3;
 
-const dayActivities = cityActivities.slice(startIndex, endIndex);
+let selectedActivities = [];
+let activitiesByDay = [];
+
+if (days == 1) {
+    const zones = {};
+
+    cityActivities.forEach(activity => {
+        const zoneName = activity.zone || "Senza zona";
+
+        if (!zones[zoneName]) {
+            zones[zoneName] = [];
+        }
+
+        zones[zoneName].push(activity);
+    });
+
+    const zoneNames = Object.keys(zones);
+
+    zoneNames.sort((zoneA, zoneB) => {
+        const scoreA = zones[zoneA].reduce(
+            (total, activity) => total + (activity.priority || 0),
+            0
+        );
+
+        const scoreB = zones[zoneB].reduce(
+            (total, activity) => total + (activity.priority || 0),
+            0
+        );
+
+        return scoreB - scoreA;
+    });
+
+    const bestZone = zoneNames[0];
+
+    selectedActivities = [...zones[bestZone]]
+        .sort((a, b) => (b.priority || 0) - (a.priority || 0))
+        .slice(0, maxActivities);
+
+} else {
+    const zones = {};
+
+    cityActivities.forEach(activity => {
+        const zoneName = activity.zone || "Senza zona";
+
+        if (!zones[zoneName]) {
+            zones[zoneName] = [];
+        }
+
+        zones[zoneName].push(activity);
+    });
+
+    const zoneNames = Object.keys(zones);
+
+    zoneNames.sort((zoneA, zoneB) => {
+        const scoreA = zones[zoneA].reduce(
+            (total, activity) => total + (activity.priority || 0),
+            0
+        );
+
+        const scoreB = zones[zoneB].reduce(
+            (total, activity) => total + (activity.priority || 0),
+            0
+        );
+
+        return scoreB - scoreA;
+    });
+
+    activitiesByDay = Array.from(
+    { length: Number(days) },
+    () => []
+);
+
+zoneNames.forEach(zoneName => {
+    const zoneActivities = [...zones[zoneName]]
+        .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+    zoneActivities.forEach(activity => {
+        const availableDay = activitiesByDay.find(
+            day => day.length < maxActivitiesPerDay
+        );
+
+        if (availableDay) {
+            availableDay.push(activity);
+        }
+    });
+});
+
+activitiesByDay.forEach(day => {
+    day.sort((a, b) => a.time.localeCompare(b.time));
+});
+selectedActivities = activitiesByDay.flat();
+}
+let dayActivities = [];
+
+if (days == 1) {
+    dayActivities = selectedActivities;
+} else {
+    dayActivities = activitiesByDay[i - 1] || [];
+}
 const morningActivities = dayActivities.filter(activity => {
     const hour = parseInt(activity.time.split(":")[0]);
     return hour < 12;
@@ -88,7 +185,12 @@ const eveningActivities = dayActivities.filter(activity => {
                 ${morningActivities.map(activity => `
                     <div class="activity-item">
                         <span class="activity-text">
-                            ⏰ ${activity.time} — 📍 ${activity.name}
+                            ⏰ ${activity.time} —
+${activity.priority === 3 ? "⭐⭐⭐ " :
+activity.priority === 2 ? "⭐⭐ " :
+activity.priority === 1 ? "⭐ " : ""}
+📍 ${activity.name}
+${activity.area ? ` — 🗺️ ${activity.area}` : ""}
                         </span>
 
                         <div class="activity-actions">
@@ -116,6 +218,7 @@ const eveningActivities = dayActivities.filter(activity => {
                     <div class="activity-item">
                         <span class="activity-text">
                             ⏰ ${activity.time} — 📍 ${activity.name}
+${activity.area ? ` — 🗺️ ${activity.area}` : ""}
                         </span>
 
                         <div class="activity-actions">
@@ -143,6 +246,7 @@ const eveningActivities = dayActivities.filter(activity => {
                     <div class="activity-item">
                         <span class="activity-text">
                             ⏰ ${activity.time} — 📍 ${activity.name}
+${activity.area ? ` — 🗺️ ${activity.area}` : ""}
                         </span>
 
                         <div class="activity-actions">
@@ -174,7 +278,7 @@ const eveningActivities = dayActivities.filter(activity => {
 result.innerHTML = `
     <h2>✈️ Il tuo viaggio a ${cityData.name}</h2>
     <p>🗓️ Partenza: ${startDate}</p>
-    <p>🌙 Durata: ${days} giorni</p>
+    <p>🌙 Durata: ${days} ${days == 1 ? "giorno" : "giorni"}</p>
 
     <div class="days-list">
         ${daysHtml}
