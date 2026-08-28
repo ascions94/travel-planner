@@ -1,23 +1,16 @@
-const destinations = {
-    londra: [
-        { time: "09:00", name: "Big Ben e Westminster" },
-        { time: "11:00", name: "London Eye" },
-        { time: "14:30", name: "Buckingham Palace" },
-
-        { time: "09:30", name: "British Museum" },
-        { time: "13:00", name: "Covent Garden" },
-        { time: "18:00", name: "Soho" },
-
-        { time: "09:00", name: "Tower of London" },
-        { time: "11:30", name: "Tower Bridge" },
-        { time: "13:30", name: "Borough Market" },
-
-        { time: "09:30", name: "Notting Hill" },
-        { time: "12:00", name: "Hyde Park" },
-        { time: "17:00", name: "Camden Town" }
-    ]
-};
 const button = document.getElementById("create-trip");
+const destinationSelect = document.getElementById("destination");
+
+Object.keys(destinations).forEach(cityKey => {
+    const option = document.createElement("option");
+
+    option.value = cityKey;
+
+    option.textContent =
+    `${destinations[cityKey].name} — ${destinations[cityKey].country}`;
+
+    destinationSelect.appendChild(option);
+});
 
 button.addEventListener("click", function () {
 
@@ -39,9 +32,12 @@ button.addEventListener("click", function () {
         return;
     }
 
-    let daysHtml = "";
+    const cityKey = destination.toLowerCase();
+const cityData = destinations[cityKey];
 
-    for (let i = 1; i <= days; i++) {
+let daysHtml = "";
+
+for (let i = 1; i <= days; i++) {
         const currentDate = new Date(startDate + "T00:00:00");
 
 currentDate.setDate(
@@ -55,9 +51,7 @@ const formattedDate = currentDate.toLocaleDateString("it-IT", {
 });
 const capitalizedDate =
     formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
-        const cityKey = destination.toLowerCase();
-const cityActivities = destinations[cityKey] || [];
-
+const cityActivities = cityData?.activities || [];
 const activitiesPerDay = Math.ceil(cityActivities.length / days);
 const startIndex = (i - 1) * activitiesPerDay;
 const endIndex = startIndex + activitiesPerDay;
@@ -178,7 +172,7 @@ const eveningActivities = dayActivities.filter(activity => {
 `;
 }
 result.innerHTML = `
-    <h2>✈️ Il tuo viaggio a ${destination}</h2>
+    <h2>✈️ Il tuo viaggio a ${cityData.name}</h2>
     <p>🗓️ Partenza: ${startDate}</p>
     <p>🌙 Durata: ${days} giorni</p>
 

@@ -16,12 +16,11 @@
         <p>Crea il tuo viaggio perfetto, giorno dopo giorno.</p>
 
         <div class="planner-box">
-            <label for="destination">Dove vuoi andare?</label>
-            <input
-                type="text"
-                id="destination"
-                placeholder="Es. Londra, Tokyo, Budapest"
-            >
+        <label for="destination">Dove vuoi andare?</label>
+
+<select id="destination">
+    <option value="">Seleziona una destinazione</option>
+</select>
             <label for="start-date">Quando parti?</label>
 <input type="date" id="start-date">
 
@@ -32,6 +31,7 @@
             <button id="new-trip" class="new-trip-button">
     🗑️ Nuovo viaggio
 </button>
+</div>
         </div>
         <div id="trip-result" class="trip-result"></div>
 
@@ -59,6 +59,7 @@
 </div>
     </div>
 </main>
+<script src="destinations.js"></script>
 <script src="script.js"></script>
 </body>
 
