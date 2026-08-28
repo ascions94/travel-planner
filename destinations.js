@@ -199,6 +199,25 @@ parigi: {
     "Parigi Nord": []
 },
 
+dayGroups: [
+    {
+        name: "Parigi Ovest",
+        zones: ["Parigi Ovest"]
+    },
+    {
+        name: "Centro e Louvre",
+        zones: ["Parigi Centro"]
+    },
+    {
+        name: "Parigi Storica",
+        zones: ["Parigi Storica", "Parigi Est"]
+    },
+    {
+        name: "Montmartre",
+        zones: ["Parigi Nord"]
+    }
+],
+
     activities: [
     {
         time: "09:00",

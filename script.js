@@ -53,6 +53,7 @@ const capitalizedDate =
     formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 const cityActivities = cityData?.activities || [];
 const nearbyZones = cityData?.nearbyZones || {};
+const dayGroups = cityData?.dayGroups || [];
 
 const maxActivities = days * 3;
 const maxActivitiesPerDay = 3;
@@ -129,6 +130,72 @@ if (days == 1) {
     () => []
 );
 
+if (dayGroups.length > 0) {
+    activitiesByDay = dayGroups
+        .slice(0, Number(days))
+        .map(group => {
+            const groupActivities = cityActivities.filter(activity =>
+                group.zones.includes(activity.zone)
+            );
+
+            return groupActivities
+                .sort((a, b) => (b.priority || 0) - (a.priority || 0))
+                .slice(0, maxActivitiesPerDay);
+        });
+
+        const usedActivityNames = new Set(
+    activitiesByDay
+        .flat()
+        .map(activity => activity.name)
+);
+
+activitiesByDay.forEach(day => {
+
+    while (day.length < maxActivitiesPerDay) {
+
+        const zonesInDay = [
+            ...new Set(
+                day.map(activity => activity.zone).filter(Boolean)
+            )
+        ];
+
+        const candidates = cityActivities
+            .filter(activity =>
+                !usedActivityNames.has(activity.name)
+            )
+            .sort((a, b) => {
+
+                const aCompatible = zonesInDay.some(zone =>
+                    zone === a.zone ||
+                    (nearbyZones[zone] || []).includes(a.zone) ||
+                    (nearbyZones[a.zone] || []).includes(zone)
+                );
+
+                const bCompatible = zonesInDay.some(zone =>
+                    zone === b.zone ||
+                    (nearbyZones[zone] || []).includes(b.zone) ||
+                    (nearbyZones[b.zone] || []).includes(zone)
+                );
+
+                if (aCompatible !== bCompatible) {
+                    return Number(bCompatible) - Number(aCompatible);
+                }
+
+                return (b.priority || 0) - (a.priority || 0);
+            });
+
+        const nextActivity = candidates[0];
+
+        if (!nextActivity) {
+            break;
+        }
+
+        day.push(nextActivity);
+        usedActivityNames.add(nextActivity.name);
+    }
+});
+
+} else {
 zoneNames.forEach(zoneName => {
     const zoneActivities = [...zones[zoneName]]
         .sort((a, b) => (b.priority || 0) - (a.priority || 0));
@@ -177,6 +244,7 @@ zoneNames.forEach(zoneName => {
     }
 });
 });
+}
 
 // Ordina le attività di ogni giorno per orario
 activitiesByDay.forEach(day => {
