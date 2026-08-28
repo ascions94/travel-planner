@@ -1,3 +1,69 @@
+function getPeriodFromTime(time) {
+    const hour = parseInt(time.split(":")[0]);
+
+    if (hour < 12) {
+        return "morning";
+    }
+
+    if (hour < 18) {
+        return "afternoon";
+    }
+
+    return "evening";
+}
+function countActivitiesByPeriod(day) {
+    return {
+        morning: day.filter(
+            activity => getPeriodFromTime(activity.time) === "morning"
+        ).length,
+
+        afternoon: day.filter(
+            activity => getPeriodFromTime(activity.time) === "afternoon"
+        ).length,
+
+        evening: day.filter(
+            activity => getPeriodFromTime(activity.time) === "evening"
+        ).length
+    };
+    function getMinutesFromTime(time) {
+    const [hours, minutes] = time.split(":").map(Number);
+
+    return hours * 60 + minutes;
+}
+function getMinimumTimeDistance(day, activity) {
+    if (day.length === 0) {
+        return Infinity;
+    }
+    function getActivityEndTime(activity) {
+    const startMinutes = getMinutesFromTime(activity.time);
+    const duration = activity.duration || 60;
+
+    return startMinutes + duration;
+}
+function hasTimeConflict(day, activity) {
+    const activityStart = getMinutesFromTime(activity.time);
+    const activityEnd = getActivityEndTime(activity);
+
+    return day.some(existingActivity => {
+        const existingStart = getMinutesFromTime(existingActivity.time);
+        const existingEnd = getActivityEndTime(existingActivity);
+
+        return activityStart < existingEnd &&
+               activityEnd > existingStart;
+    });
+}
+
+    const activityMinutes = getMinutesFromTime(activity.time);
+
+    const distances = day.map(existingActivity => {
+        const existingMinutes = getMinutesFromTime(existingActivity.time);
+
+        return Math.abs(activityMinutes - existingMinutes);
+    });
+
+    return Math.min(...distances);
+}
+}
 const button = document.getElementById("create-trip");
 const destinationSelect = document.getElementById("destination");
 
@@ -153,6 +219,7 @@ activitiesByDay.forEach(day => {
 
     while (day.length < maxActivitiesPerDay) {
 
+        const periodCounts = countActivitiesByPeriod(day);
         const zonesInDay = [
             ...new Set(
                 day.map(activity => activity.zone).filter(Boolean)
@@ -181,7 +248,31 @@ activitiesByDay.forEach(day => {
                     return Number(bCompatible) - Number(aCompatible);
                 }
 
-                return (b.priority || 0) - (a.priority || 0);
+                const periodA = getPeriodFromTime(a.time);
+const periodB = getPeriodFromTime(b.time);
+
+const countA = periodCounts[periodA];
+const countB = periodCounts[periodB];
+
+if (countA !== countB) {
+    return countA - countB;
+}
+
+const conflictA = hasTimeConflict(day, a);
+const conflictB = hasTimeConflict(day, b);
+
+if (conflictA !== conflictB) {
+    return Number(conflictA) - Number(conflictB);
+}
+
+const distanceA = getMinimumTimeDistance(day, a);
+const distanceB = getMinimumTimeDistance(day, b);
+
+if (distanceA !== distanceB) {
+    return distanceB - distanceA;
+}
+
+return (b.priority || 0) - (a.priority || 0);
             });
 
         const nextActivity = candidates[0];
@@ -273,20 +364,17 @@ const mainZone =
     dayZones.length > 0
         ? dayZones.join(" · ")
         : "";
-const morningActivities = dayActivities.filter(activity => {
-    const hour = parseInt(activity.time.split(":")[0]);
-    return hour < 12;
-});
+const morningActivities = dayActivities.filter(
+    activity => getPeriodFromTime(activity.time) === "morning"
+);
 
-const afternoonActivities = dayActivities.filter(activity => {
-    const hour = parseInt(activity.time.split(":")[0]);
-    return hour >= 12 && hour < 18;
-});
+const afternoonActivities = dayActivities.filter(
+    activity => getPeriodFromTime(activity.time) === "afternoon"
+);
 
-const eveningActivities = dayActivities.filter(activity => {
-    const hour = parseInt(activity.time.split(":")[0]);
-    return hour >= 18;
-});
+const eveningActivities = dayActivities.filter(
+    activity => getPeriodFromTime(activity.time) === "evening"
+);
         daysHtml += `
     <div class="day-card">
         <h3>
