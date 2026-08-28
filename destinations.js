@@ -4,49 +4,200 @@ const destinations = {
         country: "Regno Unito",
 
         activities: [
-            { time: "09:00", name: "Big Ben e Westminster" },
-            { time: "11:00", name: "London Eye" },
-            { time: "14:30", name: "Buckingham Palace" },
-
-            { time: "09:30", name: "British Museum" },
-            { time: "13:00", name: "Covent Garden" },
-            { time: "18:00", name: "Soho" },
-
-            { time: "09:00", name: "Tower of London" },
-            { time: "11:30", name: "Tower Bridge" },
-            { time: "13:30", name: "Borough Market" },
-
-            { time: "09:30", name: "Notting Hill" },
-            { time: "12:00", name: "Hyde Park" },
-            { time: "17:00", name: "Camden Town" }
-        ]
+    {
+        time: "09:00",
+        name: "Big Ben e Westminster",
+        area: "Westminster",
+        zone: "Londra Centro",
+        priority: 3
     },
+    {
+        time: "11:00",
+        name: "London Eye",
+        area: "South Bank",
+        zone: "Londra Centro",
+        priority: 2
+    },
+    {
+        time: "14:30",
+        name: "Buckingham Palace",
+        area: "Westminster",
+        zone: "Londra Centro",
+        priority: 3
+    },
+
+    {
+        time: "09:30",
+        name: "British Museum",
+        area: "Bloomsbury",
+        zone: "Londra Centro",
+        priority: 3
+    },
+    {
+        time: "13:00",
+        name: "Covent Garden",
+        area: "Covent Garden",
+        zone: "Londra Centro",
+        priority: 2
+    },
+    {
+        time: "18:00",
+        name: "Soho",
+        area: "Soho",
+        zone: "Londra Centro",
+        priority: 2
+    },
+
+    {
+        time: "09:00",
+        name: "Tower of London",
+        area: "Tower Hill",
+        zone: "Londra Est",
+        priority: 3
+    },
+    {
+        time: "11:30",
+        name: "Tower Bridge",
+        area: "Tower Hill",
+        zone: "Londra Est",
+        priority: 3
+    },
+    {
+        time: "13:30",
+        name: "Borough Market",
+        area: "Southwark",
+        zone: "Londra Est",
+        priority: 2
+    },
+
+    {
+        time: "09:30",
+        name: "Notting Hill",
+        area: "Notting Hill",
+        zone: "Londra Ovest",
+        priority: 2
+    },
+    {
+        time: "12:00",
+        name: "Hyde Park",
+        area: "Hyde Park",
+        zone: "Londra Ovest",
+        priority: 2
+    },
+    {
+        time: "17:00",
+        name: "Camden Town",
+        area: "Camden",
+        zone: "Londra Nord",
+        priority: 2
+    }
+]
+},
     
     roma: {
     name: "Roma",
     country: "Italia",
 
     activities: [
-        { time: "09:00", name: "Colosseo" },
-        { time: "11:00", name: "Foro Romano" },
-        { time: "15:00", name: "Fontana di Trevi" },
+    {
+        time: "09:00",
+        name: "Colosseo",
+        area: "Colosseo",
+        zone: "Roma Antica",
+        priority: 3
+    },
+    {
+        time: "11:00",
+        name: "Foro Romano",
+        area: "Fori Imperiali",
+        zone: "Roma Antica",
+        priority: 3
+    },
+    {
+        time: "15:00",
+        name: "Fontana di Trevi",
+        area: "Trevi",
+        zone: "Centro Storico",
+        priority: 3
+    },
 
-        { time: "09:30", name: "Pantheon" },
-        { time: "11:30", name: "Piazza Navona" },
-        { time: "18:00", name: "Trastevere" },
+    {
+        time: "09:30",
+        name: "Pantheon",
+        area: "Pantheon",
+        zone: "Centro Storico",
+        priority: 3
+    },
+    {
+        time: "11:30",
+        name: "Piazza Navona",
+        area: "Piazza Navona",
+        zone: "Centro Storico",
+        priority: 2
+    },
+    {
+        time: "18:00",
+        name: "Trastevere",
+        area: "Trastevere",
+        zone: "Trastevere",
+        priority: 2
+    },
 
-        { time: "09:00", name: "Musei Vaticani" },
-        { time: "12:00", name: "Basilica di San Pietro" },
-        { time: "17:30", name: "Castel Sant'Angelo" },
+    {
+        time: "09:00",
+        name: "Musei Vaticani",
+        area: "Vaticano",
+        zone: "Vaticano",
+        priority: 3
+    },
+    {
+        time: "12:00",
+        name: "Basilica di San Pietro",
+        area: "Vaticano",
+        zone: "Vaticano",
+        priority: 3
+    },
+    {
+        time: "17:30",
+        name: "Castel Sant'Angelo",
+        area: "Prati",
+        zone: "Vaticano",
+        priority: 2
+    },
 
-        { time: "09:30", name: "Villa Borghese" },
-        { time: "12:00", name: "Piazza di Spagna" },
-        { time: "18:30", name: "Terrazza del Pincio" }
-    ]
+    {
+        time: "09:30",
+        name: "Villa Borghese",
+        area: "Villa Borghese",
+        zone: "Roma Nord",
+        priority: 2
+    },
+    {
+        time: "12:00",
+        name: "Piazza di Spagna",
+        area: "Piazza di Spagna",
+        zone: "Roma Nord",
+        priority: 2
+    },
+    {
+        time: "18:30",
+        name: "Terrazza del Pincio",
+        area: "Pincio",
+        zone: "Roma Nord",
+        priority: 1
+    }
+]
 },
 parigi: {
     name: "Parigi",
     country: "Francia",
+    nearbyZones: {
+    "Parigi Ovest": ["Parigi Centro"],
+    "Parigi Centro": ["Parigi Ovest", "Parigi Storica"],
+    "Parigi Storica": ["Parigi Centro", "Parigi Est"],
+    "Parigi Est": ["Parigi Storica"],
+    "Parigi Nord": []
+},
 
     activities: [
     {

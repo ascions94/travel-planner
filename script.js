@@ -52,6 +52,8 @@ const formattedDate = currentDate.toLocaleDateString("it-IT", {
 const capitalizedDate =
     formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 const cityActivities = cityData?.activities || [];
+const nearbyZones = cityData?.nearbyZones || {};
+
 const maxActivities = days * 3;
 const maxActivitiesPerDay = 3;
 
@@ -132,21 +134,58 @@ zoneNames.forEach(zoneName => {
         .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
     zoneActivities.forEach(activity => {
-        const availableDay = activitiesByDay.find(
-            day => day.length < maxActivitiesPerDay
-        );
 
-        if (availableDay) {
-            availableDay.push(activity);
+    const compatibleDay = activitiesByDay.find(day => {
+
+        if (day.length === 0 || day.length >= maxActivitiesPerDay) {
+            return false;
         }
+
+        const zonesInDay = [
+            ...new Set(day.map(item => item.zone).filter(Boolean))
+        ];
+
+        return zonesInDay.some(dayZone => {
+
+            if (dayZone === activity.zone) {
+                return true;
+            }
+
+            const nearbyFromDay = nearbyZones[dayZone] || [];
+            const nearbyFromActivity = nearbyZones[activity.zone] || [];
+
+            return (
+                nearbyFromDay.includes(activity.zone) ||
+                nearbyFromActivity.includes(dayZone)
+            );
+        });
     });
+
+    const emptyDay = activitiesByDay.find(
+        day => day.length === 0
+    );
+
+    const availableDay = activitiesByDay.find(
+        day => day.length < maxActivitiesPerDay
+    );
+
+    const targetDay =
+        compatibleDay || emptyDay || availableDay;
+
+    if (targetDay) {
+        targetDay.push(activity);
+    }
+});
 });
 
+// Ordina le attività di ogni giorno per orario
 activitiesByDay.forEach(day => {
     day.sort((a, b) => a.time.localeCompare(b.time));
 });
+
 selectedActivities = activitiesByDay.flat();
 }
+
 let dayActivities = [];
 
 if (days == 1) {
@@ -154,6 +193,18 @@ if (days == 1) {
 } else {
     dayActivities = activitiesByDay[i - 1] || [];
 }
+const dayZones = [
+    ...new Set(
+        dayActivities
+            .map(activity => activity.zone)
+            .filter(Boolean)
+    )
+];
+
+const mainZone =
+    dayZones.length > 0
+        ? dayZones.join(" · ")
+        : "";
 const morningActivities = dayActivities.filter(activity => {
     const hour = parseInt(activity.time.split(":")[0]);
     return hour < 12;
@@ -173,6 +224,7 @@ const eveningActivities = dayActivities.filter(activity => {
         <h3>
     Giorno ${i} — ${capitalizedDate}
 </h3>
+${mainZone ? `<p class="day-zone">📍 ${mainZone}</p>` : ""}
 
         <div class="activities" id="activities-${i}">
 
