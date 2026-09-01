@@ -25,33 +25,180 @@ function countActivitiesByPeriod(day) {
             activity => getPeriodFromTime(activity.time) === "evening"
         ).length
     };
-    function getMinutesFromTime(time) {
+}
+
+function getMinutesFromTime(time) {
     const [hours, minutes] = time.split(":").map(Number);
 
     return hours * 60 + minutes;
 }
-function getMinimumTimeDistance(day, activity) {
-    if (day.length === 0) {
-        return Infinity;
+
+function getTimeFromMinutes(totalMinutes) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function formatDuration(minutes) {
+    if (!minutes) {
+        return "";
     }
-    function getActivityEndTime(activity) {
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (hours === 0) {
+        return `${remainingMinutes} min`;
+    }
+
+    if (remainingMinutes === 0) {
+        return `${hours}h`;
+    }
+
+    return `${hours}h ${remainingMinutes} min`;
+}
+
+function calculateDynamicStartTime(day, activity, nearbyZones) {
+    // Se è la prima attività del giorno,
+    // manteniamo per ora il suo orario originale
+    if (day.length === 0) {
+        return activity.time;
+    }
+
+    // Ordiniamo le attività già presenti per orario
+    const sortedDay = [...day].sort(
+        (a, b) =>
+            getMinutesFromTime(a.time) -
+            getMinutesFromTime(b.time)
+    );
+
+    // Prendiamo l'ultima attività della giornata
+    const lastActivity = sortedDay[sortedDay.length - 1];
+
+    // Calcoliamo quando possiamo iniziare la successiva
+    const nextAvailableMinutes = getNextAvailableTime(
+        lastActivity,
+        activity,
+        nearbyZones
+    );
+
+    return getTimeFromMinutes(nextAvailableMinutes);
+}
+
+function getActivityEndTime(activity) {
     const startMinutes = getMinutesFromTime(activity.time);
     const duration = activity.duration || 60;
 
     return startMinutes + duration;
 }
-function hasTimeConflict(day, activity) {
+
+function getNextAvailableTime(activity, nextActivity, nearbyZones) {
+    const activityEnd = getActivityEndTime(activity);
+
+    const travelTime = getTravelTime(
+        activity,
+        nextActivity,
+        nearbyZones
+    );
+
+    return activityEnd + travelTime;
+}
+
+function getTravelTime(activityA, activityB, nearbyZones) {
+
+    if (activityA.area === activityB.area) {
+        return 15;
+    }
+
+    if (activityA.zone === activityB.zone) {
+        return 30;
+    }
+
+    const areNearby =
+        (nearbyZones[activityA.zone] || []).includes(activityB.zone) ||
+        (nearbyZones[activityB.zone] || []).includes(activityA.zone);
+
+    if (areNearby) {
+        return 45;
+    }
+
+    return 75;
+}
+function getDayTotalMinutes(day, nearbyZones = {}) {
+    if (day.length === 0) {
+        return 0;
+    }
+
+    const sortedDay = [...day].sort(
+        (a, b) =>
+            getMinutesFromTime(a.time) -
+            getMinutesFromTime(b.time)
+    );
+
+    let totalMinutes = 0;
+
+    sortedDay.forEach((activity, index) => {
+        totalMinutes += activity.duration || 60;
+
+        const nextActivity = sortedDay[index + 1];
+
+        if (nextActivity) {
+            totalMinutes += getTravelTime(
+                activity,
+                nextActivity,
+                nearbyZones
+            );
+        }
+    });
+
+    return totalMinutes;
+}
+function hasTimeConflict(day, activity, nearbyZones = {}) {
     const activityStart = getMinutesFromTime(activity.time);
     const activityEnd = getActivityEndTime(activity);
 
-    return day.some(existingActivity => {
-        const existingStart = getMinutesFromTime(existingActivity.time);
-        const existingEnd = getActivityEndTime(existingActivity);
+    // Pausa pranzo: 12:30 - 14:00
+    const lunchStart = 12 * 60 + 30;
+    const lunchEnd = 14 * 60;
 
-        return activityStart < existingEnd &&
-               activityEnd > existingStart;
-    });
+    const overlapsLunch =
+        activityStart < lunchEnd &&
+        activityEnd > lunchStart;
+
+    if (overlapsLunch) {
+        return true;
+    }
+
+    return day.some(existingActivity => {
+    const existingStart = getMinutesFromTime(existingActivity.time);
+
+    // La nuova attività viene dopo quella esistente
+    if (activityStart >= existingStart) {
+        const nextAvailableTime = getNextAvailableTime(
+            existingActivity,
+            activity,
+            nearbyZones
+        );
+
+        return activityStart < nextAvailableTime;
+    }
+
+    // La nuova attività viene prima di quella esistente
+    const nextAvailableTime = getNextAvailableTime(
+        activity,
+        existingActivity,
+        nearbyZones
+    );
+
+    return existingStart < nextAvailableTime;
+});
 }
+
+function getMinimumTimeDistance(day, activity) {
+    if (day.length === 0) {
+        return Infinity;
+    }
 
     const activityMinutes = getMinutesFromTime(activity.time);
 
@@ -62,7 +209,6 @@ function hasTimeConflict(day, activity) {
     });
 
     return Math.min(...distances);
-}
 }
 const button = document.getElementById("create-trip");
 const destinationSelect = document.getElementById("destination");
@@ -121,8 +267,9 @@ const cityActivities = cityData?.activities || [];
 const nearbyZones = cityData?.nearbyZones || {};
 const dayGroups = cityData?.dayGroups || [];
 
-const maxActivities = days * 3;
-const maxActivitiesPerDay = 3;
+const maxActivitiesPerDay = 8;
+const maxActivities = days * maxActivitiesPerDay;
+const maxDayMinutes = 540;
 
 let selectedActivities = [];
 let activitiesByDay = [];
@@ -204,9 +351,48 @@ if (dayGroups.length > 0) {
                 group.zones.includes(activity.zone)
             );
 
-            return groupActivities
-                .sort((a, b) => (b.priority || 0) - (a.priority || 0))
-                .slice(0, maxActivitiesPerDay);
+            const sortedActivities = [...groupActivities]
+    .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+const selectedGroupActivities = [];
+
+while (selectedGroupActivities.length < maxActivitiesPerDay) {
+
+    const availableActivities = sortedActivities.filter(activity =>
+        !selectedGroupActivities.includes(activity) &&
+        !hasTimeConflict(selectedGroupActivities, activity, nearbyZones)
+    );
+
+    if (availableActivities.length === 0) {
+        break;
+    }
+
+    const periodCounts =
+        countActivitiesByPeriod(selectedGroupActivities);
+
+    availableActivities.sort((a, b) => {
+
+    const periodA = getPeriodFromTime(a.time);
+    const periodB = getPeriodFromTime(b.time);
+
+    const countA = periodCounts[periodA];
+    const countB = periodCounts[periodB];
+
+    const scoreA =
+        (a.priority || 0) * 10
+        - countA * 6;
+
+    const scoreB =
+        (b.priority || 0) * 10
+        - countB * 6;
+
+    return scoreB - scoreA;
+});
+
+    selectedGroupActivities.push(availableActivities[0]);
+}
+
+return selectedGroupActivities;
         });
 
         const usedActivityNames = new Set(
@@ -226,11 +412,41 @@ activitiesByDay.forEach(day => {
             )
         ];
 
-        const candidates = cityActivities
-            .filter(activity =>
-                !usedActivityNames.has(activity.name)
-            )
-            .sort((a, b) => {
+        const unusedActivities = cityActivities.filter(activity => {
+    if (usedActivityNames.has(activity.name)) {
+        return false;
+    }
+
+    if (hasTimeConflict(day, activity, nearbyZones)) {
+        return false;
+    }
+
+    const testDay = [
+        ...day,
+        activity
+    ];
+
+    return getDayTotalMinutes(testDay, nearbyZones) <= maxDayMinutes;
+});
+
+const nearbyCandidates = unusedActivities.filter(activity => {
+    if (zonesInDay.length === 0) {
+        return true;
+    }
+
+    return zonesInDay.some(zone =>
+        zone === activity.zone ||
+        (nearbyZones[zone] || []).includes(activity.zone) ||
+        (nearbyZones[activity.zone] || []).includes(zone)
+    );
+});
+
+const candidates =
+    (nearbyCandidates.length > 0
+        ? nearbyCandidates
+        : unusedActivities
+    )
+    .sort((a, b) => {
 
                 const aCompatible = zonesInDay.some(zone =>
                     zone === a.zone ||
@@ -258,13 +474,6 @@ if (countA !== countB) {
     return countA - countB;
 }
 
-const conflictA = hasTimeConflict(day, a);
-const conflictB = hasTimeConflict(day, b);
-
-if (conflictA !== conflictB) {
-    return Number(conflictA) - Number(conflictB);
-}
-
 const distanceA = getMinimumTimeDistance(day, a);
 const distanceB = getMinimumTimeDistance(day, b);
 
@@ -277,12 +486,56 @@ return (b.priority || 0) - (a.priority || 0);
 
         const nextActivity = candidates[0];
 
-        if (!nextActivity) {
-            break;
-        }
+if (!nextActivity) {
+    break;
+}
 
-        day.push(nextActivity);
-        usedActivityNames.add(nextActivity.name);
+// Creiamo una copia per non modificare i dati originali
+const scheduledActivity = {
+    ...nextActivity
+};
+
+// Calcoliamo il primo orario possibile
+const dynamicTime = calculateDynamicStartTime(
+    day,
+    scheduledActivity,
+    nearbyZones
+);
+
+const originalMinutes =
+    getMinutesFromTime(scheduledActivity.time);
+
+const dynamicMinutes =
+    getMinutesFromTime(dynamicTime);
+
+// Non anticipiamo mai l'orario originale.
+// Possiamo soltanto mantenerlo o spostarlo più avanti.
+let finalStartMinutes = Math.max(
+    originalMinutes,
+    dynamicMinutes
+);
+
+// Pausa pranzo 12:30 - 14:00
+const lunchStart = 12 * 60 + 30;
+const lunchEnd = 14 * 60;
+
+const activityDuration =
+    scheduledActivity.duration || 60;
+
+const overlapsLunch =
+    finalStartMinutes < lunchEnd &&
+    finalStartMinutes + activityDuration > lunchStart;
+
+if (overlapsLunch) {
+    finalStartMinutes = lunchEnd;
+}
+
+// Assegniamo il nuovo orario calcolato
+scheduledActivity.time =
+    getTimeFromMinutes(finalStartMinutes);
+
+day.push(scheduledActivity);
+usedActivityNames.add(scheduledActivity.name);
     }
 });
 
@@ -399,6 +652,7 @@ activity.priority === 2 ? "⭐⭐ " :
 activity.priority === 1 ? "⭐ " : ""}
 📍 ${activity.name}
 ${activity.area ? ` — 🗺️ ${activity.area}` : ""}
+${activity.duration ? `<br>⏱️ Durata: ${formatDuration(activity.duration)}` : ""}
                         </span>
 
                         <div class="activity-actions">
@@ -427,6 +681,7 @@ ${activity.area ? ` — 🗺️ ${activity.area}` : ""}
                         <span class="activity-text">
                             ⏰ ${activity.time} — 📍 ${activity.name}
 ${activity.area ? ` — 🗺️ ${activity.area}` : ""}
+${activity.duration ? `<br>⏱️ Durata: ${formatDuration(activity.duration)}` : ""}
                         </span>
 
                         <div class="activity-actions">
@@ -455,6 +710,7 @@ ${activity.area ? ` — 🗺️ ${activity.area}` : ""}
                         <span class="activity-text">
                             ⏰ ${activity.time} — 📍 ${activity.name}
 ${activity.area ? ` — 🗺️ ${activity.area}` : ""}
+${activity.duration ? `<br>⏱️ Durata: ${formatDuration(activity.duration)}` : ""}
                         </span>
 
                         <div class="activity-actions">
