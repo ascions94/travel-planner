@@ -1,97 +1,355 @@
 const destinations = {
     londra: {
-        name: "Londra",
-        country: "Regno Unito",
+    name: "Londra",
+    country: "Regno Unito",
 
-        activities: [
-    {
-        time: "09:00",
-        name: "Big Ben e Westminster",
-        area: "Westminster",
-        zone: "Londra Centro",
-        priority: 3
-    },
-    {
-        time: "11:00",
-        name: "London Eye",
-        area: "South Bank",
-        zone: "Londra Centro",
-        priority: 2
-    },
-    {
-        time: "14:30",
-        name: "Buckingham Palace",
-        area: "Westminster",
-        zone: "Londra Centro",
-        priority: 3
+    nearbyZones: {
+        "Londra Centro": ["Londra Ovest", "Londra Est", "Londra Nord"],
+        "Londra Ovest": ["Londra Centro", "Londra Nord"],
+        "Londra Est": ["Londra Centro", "Londra Nord"],
+        "Londra Nord": ["Londra Centro", "Londra Ovest", "Londra Est"]
     },
 
-    {
-        time: "09:30",
-        name: "British Museum",
-        area: "Bloomsbury",
-        zone: "Londra Centro",
-        priority: 3
-    },
-    {
-        time: "13:00",
-        name: "Covent Garden",
-        area: "Covent Garden",
-        zone: "Londra Centro",
-        priority: 2
-    },
-    {
-        time: "18:00",
-        name: "Soho",
-        area: "Soho",
-        zone: "Londra Centro",
-        priority: 2
-    },
+    dayGroups: [
+        {
+            name: "Westminster e West End",
+            zones: ["Londra Centro"]
+        },
+        {
+            name: "Tower e South Bank",
+            zones: ["Londra Est"]
+        },
+        {
+            name: "Kensington e Notting Hill",
+            zones: ["Londra Ovest"]
+        },
+        {
+            name: "Camden e Londra Nord",
+            zones: ["Londra Nord"]
+        }
+    ],
 
-    {
-        time: "09:00",
-        name: "Tower of London",
-        area: "Tower Hill",
-        zone: "Londra Est",
-        priority: 3
-    },
-    {
-        time: "11:30",
-        name: "Tower Bridge",
-        area: "Tower Hill",
-        zone: "Londra Est",
-        priority: 3
-    },
-    {
-        time: "13:30",
-        name: "Borough Market",
-        area: "Southwark",
-        zone: "Londra Est",
-        priority: 2
-    },
+    activities: [
 
-    {
-        time: "09:30",
-        name: "Notting Hill",
-        area: "Notting Hill",
-        zone: "Londra Ovest",
-        priority: 2
-    },
-    {
-        time: "12:00",
-        name: "Hyde Park",
-        area: "Hyde Park",
-        zone: "Londra Ovest",
-        priority: 2
-    },
-    {
-        time: "17:00",
-        name: "Camden Town",
-        area: "Camden",
-        zone: "Londra Nord",
-        priority: 2
-    }
-]
+        // =========================
+        // LONDRA CENTRO
+        // =========================
+
+        {
+            time: "09:00",
+            name: "Big Ben e Palazzo di Westminster",
+            area: "Westminster",
+            zone: "Londra Centro",
+            priority: 3,
+            duration: 90,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "11:00",
+            name: "Westminster Abbey",
+            area: "Westminster",
+            zone: "Londra Centro",
+            priority: 3,
+            duration: 90,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "09:30",
+            name: "British Museum",
+            area: "Bloomsbury",
+            zone: "Londra Centro",
+            priority: 3,
+            duration: 150,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "14:00",
+            name: "Buckingham Palace",
+            area: "Westminster",
+            zone: "Londra Centro",
+            priority: 3,
+            duration: 90,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "16:00",
+            name: "Covent Garden",
+            area: "Covent Garden",
+            zone: "Londra Centro",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "17:30",
+            name: "Trafalgar Square",
+            area: "West End",
+            zone: "Londra Centro",
+            priority: 2,
+            duration: 60,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "19:00",
+            name: "Soho",
+            area: "Soho",
+            zone: "Londra Centro",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "evening"
+        },
+
+        {
+            time: "21:00",
+            name: "Piccadilly Circus",
+            area: "West End",
+            zone: "Londra Centro",
+            priority: 1,
+            duration: 60,
+            preferredPeriod: "evening"
+        },
+
+
+        // =========================
+        // LONDRA EST
+        // =========================
+
+        {
+            time: "09:00",
+            name: "Tower of London",
+            area: "Tower Hill",
+            zone: "Londra Est",
+            priority: 3,
+            duration: 180,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "11:30",
+            name: "Tower Bridge",
+            area: "Tower Hill",
+            zone: "Londra Est",
+            priority: 3,
+            duration: 90,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "09:30",
+            name: "St Paul's Cathedral",
+            area: "City of London",
+            zone: "Londra Est",
+            priority: 3,
+            duration: 120,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "14:00",
+            name: "Borough Market",
+            area: "Southwark",
+            zone: "Londra Est",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "15:30",
+            name: "Shakespeare's Globe",
+            area: "Southwark",
+            zone: "Londra Est",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "17:30",
+            name: "Tate Modern",
+            area: "South Bank",
+            zone: "Londra Est",
+            priority: 2,
+            duration: 120,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "19:30",
+            name: "London Eye",
+            area: "South Bank",
+            zone: "Londra Est",
+            priority: 3,
+            duration: 60,
+            preferredPeriod: "evening"
+        },
+
+        {
+            time: "21:00",
+            name: "Passeggiata sulla South Bank",
+            area: "South Bank",
+            zone: "Londra Est",
+            priority: 1,
+            duration: 60,
+            preferredPeriod: "evening"
+        },
+
+
+        // =========================
+        // LONDRA OVEST
+        // =========================
+
+        {
+            time: "09:00",
+            name: "Natural History Museum",
+            area: "South Kensington",
+            zone: "Londra Ovest",
+            priority: 3,
+            duration: 150,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "09:30",
+            name: "Victoria and Albert Museum",
+            area: "South Kensington",
+            zone: "Londra Ovest",
+            priority: 2,
+            duration: 120,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "10:00",
+            name: "Notting Hill",
+            area: "Notting Hill",
+            zone: "Londra Ovest",
+            priority: 2,
+            duration: 120,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "14:00",
+            name: "Kensington Palace",
+            area: "Kensington",
+            zone: "Londra Ovest",
+            priority: 2,
+            duration: 120,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "16:30",
+            name: "Hyde Park",
+            area: "Hyde Park",
+            zone: "Londra Ovest",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "18:30",
+            name: "Portobello Road",
+            area: "Notting Hill",
+            zone: "Londra Ovest",
+            priority: 1,
+            duration: 90,
+            preferredPeriod: "evening"
+        },
+
+        {
+            time: "20:30",
+            name: "Harrods",
+            area: "Knightsbridge",
+            zone: "Londra Ovest",
+            priority: 1,
+            duration: 60,
+            preferredPeriod: "evening"
+        },
+
+
+        // =========================
+        // LONDRA NORD
+        // =========================
+
+        {
+            time: "09:00",
+            name: "Regent's Park",
+            area: "Regent's Park",
+            zone: "Londra Nord",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "10:30",
+            name: "Primrose Hill",
+            area: "Primrose Hill",
+            zone: "Londra Nord",
+            priority: 2,
+            duration: 60,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "11:30",
+            name: "British Library",
+            area: "King's Cross",
+            zone: "Londra Nord",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "morning"
+        },
+
+        {
+            time: "14:00",
+            name: "Camden Market",
+            area: "Camden",
+            zone: "Londra Nord",
+            priority: 3,
+            duration: 120,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "16:30",
+            name: "King's Cross e St Pancras",
+            area: "King's Cross",
+            zone: "Londra Nord",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "afternoon"
+        },
+
+        {
+            time: "18:30",
+            name: "Coal Drops Yard",
+            area: "King's Cross",
+            zone: "Londra Nord",
+            priority: 1,
+            duration: 60,
+            preferredPeriod: "evening"
+        },
+
+        {
+            time: "20:00",
+            name: "Camden Town",
+            area: "Camden",
+            zone: "Londra Nord",
+            priority: 2,
+            duration: 90,
+            preferredPeriod: "evening"
+        }
+    ]
 },
     
     roma: {

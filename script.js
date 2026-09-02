@@ -270,6 +270,7 @@ const dayGroups = cityData?.dayGroups || [];
 const maxActivitiesPerDay = 8;
 const maxActivities = days * maxActivitiesPerDay;
 const maxDayMinutes = 540;
+const dayEndMinutes = 22 * 60 + 30;
 
 let selectedActivities = [];
 let activitiesByDay = [];
@@ -358,10 +359,31 @@ const selectedGroupActivities = [];
 
 while (selectedGroupActivities.length < maxActivitiesPerDay) {
 
-    const availableActivities = sortedActivities.filter(activity =>
-        !selectedGroupActivities.includes(activity) &&
-        !hasTimeConflict(selectedGroupActivities, activity, nearbyZones)
+    const availableActivities = sortedActivities.filter(activity => {
+    if (selectedGroupActivities.includes(activity)) {
+        return false;
+    }
+
+    if (
+        hasTimeConflict(
+            selectedGroupActivities,
+            activity,
+            nearbyZones
+        )
+    ) {
+        return false;
+    }
+
+    const testDay = [
+        ...selectedGroupActivities,
+        activity
+    ];
+
+    return (
+        getDayTotalMinutes(testDay, nearbyZones) <=
+        maxDayMinutes
     );
+});
 
     if (availableActivities.length === 0) {
         break;
@@ -530,6 +552,13 @@ if (overlapsLunch) {
     finalStartMinutes = lunchEnd;
 }
 
+const finalEndMinutes =
+    finalStartMinutes + activityDuration;
+
+if (finalEndMinutes > dayEndMinutes) {
+    break;
+}
+
 // Assegniamo il nuovo orario calcolato
 scheduledActivity.time =
     getTimeFromMinutes(finalStartMinutes);
@@ -546,31 +575,90 @@ zoneNames.forEach(zoneName => {
 
     zoneActivities.forEach(activity => {
 
-    const compatibleDay = activitiesByDay.find(day => {
+    const compatibleDays = activitiesByDay.filter(day => {
 
-        if (day.length === 0 || day.length >= maxActivitiesPerDay) {
-            return false;
+    if (day.length === 0 || day.length >= maxActivitiesPerDay) {
+        return false;
+    }
+
+    if (hasTimeConflict(day, activity, nearbyZones)) {
+        return false;
+    }
+
+    const testDay = [
+        ...day,
+        activity
+    ];
+
+    if (
+        getDayTotalMinutes(testDay, nearbyZones) >
+        maxDayMinutes
+    ) {
+        return false;
+    }
+
+    const zonesInDay = [
+        ...new Set(
+            day.map(item => item.zone).filter(Boolean)
+        )
+    ];
+
+    return zonesInDay.some(dayZone => {
+
+        if (dayZone === activity.zone) {
+            return true;
         }
 
-        const zonesInDay = [
-            ...new Set(day.map(item => item.zone).filter(Boolean))
-        ];
+        const nearbyFromDay =
+            nearbyZones[dayZone] || [];
 
-        return zonesInDay.some(dayZone => {
+        const nearbyFromActivity =
+            nearbyZones[activity.zone] || [];
 
-            if (dayZone === activity.zone) {
-                return true;
-            }
-
-            const nearbyFromDay = nearbyZones[dayZone] || [];
-            const nearbyFromActivity = nearbyZones[activity.zone] || [];
-
-            return (
-                nearbyFromDay.includes(activity.zone) ||
-                nearbyFromActivity.includes(dayZone)
-            );
-        });
+        return (
+            nearbyFromDay.includes(activity.zone) ||
+            nearbyFromActivity.includes(dayZone)
+        );
     });
+});
+
+compatibleDays.sort((dayA, dayB) => {
+
+    const zonesA = [
+        ...new Set(
+            dayA.map(item => item.zone).filter(Boolean)
+        )
+    ];
+
+    const zonesB = [
+        ...new Set(
+            dayB.map(item => item.zone).filter(Boolean)
+        )
+    ];
+
+    const sameZoneA =
+        zonesA.includes(activity.zone);
+
+    const sameZoneB =
+        zonesB.includes(activity.zone);
+
+    // Prima preferiamo la stessa zona
+    if (sameZoneA !== sameZoneB) {
+        return Number(sameZoneB) - Number(sameZoneA);
+    }
+
+    // Se geograficamente equivalenti,
+    // scegliamo il giorno meno carico
+    const loadA =
+        getDayTotalMinutes(dayA, nearbyZones);
+
+    const loadB =
+        getDayTotalMinutes(dayB, nearbyZones);
+
+    return loadA - loadB;
+});
+
+const compatibleDay = compatibleDays[0];
 
     const emptyDay = activitiesByDay.find(
         day => day.length === 0
@@ -584,8 +672,47 @@ zoneNames.forEach(zoneName => {
         compatibleDay || emptyDay || availableDay;
 
     if (targetDay) {
-        targetDay.push(activity);
+    const scheduledActivity = {
+        ...activity
+    };
+
+    const dynamicTime = calculateDynamicStartTime(
+        targetDay,
+        scheduledActivity,
+        nearbyZones
+    );
+
+    const originalMinutes =
+        getMinutesFromTime(scheduledActivity.time);
+
+    const dynamicMinutes =
+        getMinutesFromTime(dynamicTime);
+
+    let finalStartMinutes = Math.max(
+        originalMinutes,
+        dynamicMinutes
+    );
+
+    // Pausa pranzo 12:30 - 14:00
+    const lunchStart = 12 * 60 + 30;
+    const lunchEnd = 14 * 60;
+
+    const activityDuration =
+        scheduledActivity.duration || 60;
+
+    const overlapsLunch =
+        finalStartMinutes < lunchEnd &&
+        finalStartMinutes + activityDuration > lunchStart;
+
+    if (overlapsLunch) {
+        finalStartMinutes = lunchEnd;
     }
+
+    scheduledActivity.time =
+        getTimeFromMinutes(finalStartMinutes);
+
+    targetDay.push(scheduledActivity);
+}
 });
 });
 }
@@ -605,6 +732,8 @@ if (days == 1) {
 } else {
     dayActivities = activitiesByDay[i - 1] || [];
 }
+const dayTotalMinutes =
+    getDayTotalMinutes(dayActivities, nearbyZones);
 const dayZones = [
     ...new Set(
         dayActivities
@@ -633,6 +762,9 @@ const eveningActivities = dayActivities.filter(
         <h3>
     Giorno ${i} — ${capitalizedDate}
 </h3>
+<p class="day-duration">
+    ⏱️ Carico giornata: ${formatDuration(dayTotalMinutes)}
+</p>
 ${mainZone ? `<p class="day-zone">📍 ${mainZone}</p>` : ""}
 
         <div class="activities" id="activities-${i}">
